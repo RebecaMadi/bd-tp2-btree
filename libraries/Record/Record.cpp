@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstring> // Para strcpy
 #include <cstdlib>  //realloc
+#include <utility>
 
 namespace Record {
 
@@ -51,7 +52,7 @@ void Record::setObject(int id, const char* title, unsigned short year, const cha
     this->snippet[sizeof(this->snippet) - 1] = '\0';
 }
 
-char* Record::toString() {
+std::pair<char*, int> Record::toString() {
     size_t currentSize = 0;
     currentSize += sizeof(this->id); 
     currentSize += strlen(this->title) + 1; 
@@ -61,6 +62,7 @@ char* Record::toString() {
     currentSize += strlen(this->lastUpdated) + 1; 
     currentSize += strlen(this->snippet) + 1; 
 
+    // Aloca espaço suficiente para o registro completo
     char* bytes_record = (char*) malloc(currentSize);
     size_t offset = 0;
 
@@ -97,27 +99,36 @@ char* Record::toString() {
     memcpy(result + sizeof(offsets), bytes_record, currentSize); 
 
     free(bytes_record); 
-    return result;
-
+    return {result, currentSize + sizeof(offsets)};
 }
+
+
 void Record::toObject(char* serializedRecord) {
     if (serializedRecord == nullptr) return;
 
     unsigned short* offsets = (unsigned short*)serializedRecord;
 
-    int id;
-    memcpy(&id, serializedRecord + sizeof(unsigned short) *7, sizeof(id)); // Correção do offset
-    unsigned short year;
-    memcpy(&year, serializedRecord +  sizeof(unsigned short) * 7 + offsets[2], sizeof(year));
-    unsigned int citations;
-    memcpy(&citations, serializedRecord +  sizeof(unsigned short) * 7 + offsets[4], sizeof(citations));
+    int idOffset = offsets[0];
+    int titleOffset = offsets[1];
+    int yearOffset = offsets[2];
+    int authorsOffset = offsets[3];
+    int citationsOffset = offsets[4];
+    int lastUpdatedOffset = offsets[5];
+    int snippetOffset = offsets[6];
 
-    const char* title = serializedRecord +  sizeof(unsigned short) * 7 + offsets[1];
-    const char* authors = serializedRecord +  sizeof(unsigned short) * 7 + offsets[3];
-    const char* lastUpdated = serializedRecord +  sizeof(unsigned short) * 7 + offsets[5];
-    const char* snippet = serializedRecord + sizeof(unsigned short) * 7 + offsets[6];
-    std::cout<<offsets[6]<<"\n";
-    setObject(id, title, year, authors, citations, lastUpdated, snippet);
+    memcpy(&id, serializedRecord + sizeof(unsigned short) * 7 + idOffset, sizeof(id));
+    memcpy(&year, serializedRecord + sizeof(unsigned short) * 7 + yearOffset, sizeof(year));
+    memcpy(&citations, serializedRecord + sizeof(unsigned short) * 7 + citationsOffset, sizeof(citations));
+
+    setObject(
+        id,
+        serializedRecord + sizeof(unsigned short) * 7 + titleOffset,
+        year,
+        serializedRecord + sizeof(unsigned short) * 7 + authorsOffset,
+        citations,
+        serializedRecord + sizeof(unsigned short) * 7 + lastUpdatedOffset,
+        serializedRecord + sizeof(unsigned short) * 7 + snippetOffset
+    );
 }
 
 }

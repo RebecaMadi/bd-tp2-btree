@@ -1,6 +1,6 @@
 #ifndef RECORD_H
 #define RECORD_H
-
+#include <utility>
 namespace Record {
 class Record {
 
@@ -27,7 +27,7 @@ class Record {
                 unsigned int citations, const char* lastUpdated, const char* snippet);
 
         void display();
-        char* toString();
+        std::pair<char*, int> toString();
         void toObject(char* bytes);
         void setObject(int id, const char* title, unsigned short year, const char* authors, 
                 unsigned int citations, const char* lastUpdated, const char* snippet);

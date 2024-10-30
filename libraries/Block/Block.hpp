@@ -1,8 +1,7 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#define BLOCK_SIZE_T 8192
-// 2¹³. Cabem no máximo 5 registros no bloco.
+#define BLOCK_SIZE_T 4096
 
 #define MAX_RECORD_COUNTER 5
 
@@ -16,12 +15,16 @@ class Block {
     public:
         unsigned int id;
         unsigned short record_counter;
+        char* bytes_block;
+        int currentOffset;
+        int freeSize;
+        int able;
         Record::Record *records;
         
         Block(unsigned int id, unsigned short record_counter);
 
-        void addRecord(Record::Record *rec);
-
+        void addRecord(Record::Record rec);
+        void deserializedBlock();
 };
 
 }
